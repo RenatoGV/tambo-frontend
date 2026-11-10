@@ -4,6 +4,7 @@ export interface User {
    lastname: string;
    user: string;
    role: Role;
+   active: boolean;
 }
 
 export interface Role {

@@ -1,6 +1,6 @@
 
 import { ToastContainer } from "react-toastify";
-import PosPage from "./pages/PosPage";
+import PosPage from "./pages/Pos";
 import LoginPage from "./pages/Login";
 import { useAuth } from "./auth/AuthContext";
 import { Navigate, Route, Routes } from "react-router";
@@ -8,6 +8,8 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import ConfigPage from "./pages/Config";
 import Layout from "./layout/Layout";
 import { useTheme } from "./context/ThemeContext";
+import UsersPage from "./pages/Users";
+import RoleProtectedRoute from "./auth/RoleProtectedRoute";
 
 function App() {
   const { user, loading } = useAuth();
@@ -37,6 +39,9 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/pos" element={<PosPage />} />
             <Route path="/config" element={<ConfigPage />} />
+            <Route element={<RoleProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/users" element={<UsersPage />} />
+            </Route>
           </Route>
         </Route>
 

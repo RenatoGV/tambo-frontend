@@ -1,4 +1,6 @@
+import { http } from "../api/http";
 import type { ChangePasswordRequest, LoginRequest, LoginResponse } from "../types/auth";
+import type { RegisterRequest } from "../types/requests/userRequest";
 import type { User } from "../types/user";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -68,3 +70,10 @@ export async function changePassword(request: ChangePasswordRequest): Promise<vo
       throw new Error("No se pudo actualizar la contraseña.");
    }
 }
+
+export function createUser(request: RegisterRequest) {
+   return http<unknown>("/auth/register", {
+      method: 'POST',
+      body: JSON.stringify(request)
+   });
+};

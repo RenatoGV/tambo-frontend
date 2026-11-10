@@ -4,7 +4,8 @@ import PageHeader from "../components/layout/PageHeader";
 
 const pageTitles: Record<string, string> = {
    "/pos": "Punto de venta",
-   "/config": "Configuración"
+   "/config": "Configuración",
+   "/users": "Usuarios"
 }
 
 export default function Layout() {
@@ -20,7 +21,7 @@ export default function Layout() {
             <PageHeader title={title} />
 
             {/* Contenido de la ruta */}
-            <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+            <div className="min-h-0 min-w-0 flex-1">
                <Outlet />
             </div>
          </div>

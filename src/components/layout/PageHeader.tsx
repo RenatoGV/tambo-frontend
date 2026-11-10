@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import Logo from "../../assets/logo.png";
+import { RoleFormatter } from "../../helpers/roleHelper";
 
 interface PageHeaderProps {
    title: string;
@@ -26,7 +27,7 @@ export default function PageHeader({ title, children }: Readonly<PageHeaderProps
                </p>
 
                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {user?.role.id === 1 ? 'Admin': 'Colaborador'}
+                  {user?.role?.role ? RoleFormatter.format(user.role.role) : "—"}
                </p>
             </div>
          </div>
