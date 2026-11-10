@@ -72,12 +72,12 @@ export default function Config() {
                   </div>
 
                   <CustomSelect
-   value={theme}
-   options={themeOptions}
-   onChange={setTheme}
-   ariaLabel="Tema de pantalla"
-   className="w-48"
-/>
+                     value={theme}
+                     options={themeOptions}
+                     onChange={setTheme}
+                     ariaLabel="Tema de pantalla"
+                     className="w-48"
+                  />
                </div>
 
                {/* Cambiar contraseña */}

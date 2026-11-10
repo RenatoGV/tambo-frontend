@@ -1,5 +1,6 @@
 import { BriefcaseBusiness, House, Package, ReceiptText, Settings, Store, UsersRound } from "lucide-react";
 import { NavLink } from "react-router";
+import { useAuth } from "../../auth/AuthContext";
 
 const navigation = [
    {
@@ -25,11 +26,16 @@ const navigation = [
    {
       name: "Usuarios",
       path: "/users",
-      icon: UsersRound
+      icon: UsersRound,
+      allowedRoles: 'admin'
    }
 ]
 
 export default function Sidebar() {
+   const { user } = useAuth();
+
+   const visibleMenuItems = navigation.filter((item) => !item.allowedRoles || item.allowedRoles.includes(user?.role.role ?? ""));
+
    return (
       <aside className="flex h-full w-17 shrink-0 flex-col items-center overflow-hidden border-r border-slate-200 bg-white py-5 dark:border-slate-800 dark:bg-slate-900">
          <div className="mb-10 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600 text-white">
@@ -39,7 +45,7 @@ export default function Sidebar() {
          { /* Navegación */ }
          <nav className="flex min-h-0 flex-1 flex-col gap-4">
             {
-               navigation.map(({name, path, icon: Icon}) => (
+               visibleMenuItems.map(({name, path, icon: Icon}) => (
                   <NavLink
                      key={path}
                      to={path}
