@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, RefreshCw, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import UserStats from "../components/users/UserStats";
-import UserFilters, { type UserStatusFilter } from "../components/users/UserFilters";
+import UserFilters, { type UserRoleFilter, type UserStatusFilter } from "../components/users/UserFilters";
 import { changeUserStatus, getUsers } from "../services/userService";
 import type { User } from "../types/user";
 import UserTable from "../components/users/UserTable";
@@ -15,6 +15,7 @@ export default function UsersPage() {
 
    const [search, setSearch] = useState("");
    const [status, setStatus] = useState<UserStatusFilter>("all");
+   const [role, setRole] = useState<UserRoleFilter>("all")
 
    const [showModal, setShowModal] = useState(false);
    const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -49,9 +50,11 @@ export default function UsersPage() {
 
          const matchesStatus = status === "all" || (status === "active" && user.active) || (status === "inactive" && !user.active);
 
-         return matchesSearch && matchesStatus;
+         const matchesRole = role === "all" || (role === "admin" && user.role?.id === 1) || (role === "user" && user.role?.id === 2);
+
+         return matchesSearch && matchesStatus && matchesRole;
       });
-   }, [users, search, status]);
+   }, [users, search, status, role]);
 
    const handleCreateUser = () => {
       setSelectedUser(null);
@@ -147,6 +150,8 @@ export default function UsersPage() {
                   onSearchChange={setSearch}
                   status={status}
                   onStatusChange={setStatus}
+                  role={role}
+                  onRoleChange={setRole}
                />
             </div>
 
