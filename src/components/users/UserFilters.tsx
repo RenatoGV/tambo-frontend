@@ -3,8 +3,7 @@ import type { SelectOption } from "../ui/CustomSelect";
 import CustomSelect from "../ui/CustomSelect";
 
 export type UserStatusFilter = "all" | "active" | "inactive";
-
-const filterOptions: SelectOption<UserStatusFilter>[] = [
+const filterStatusOptions: SelectOption<UserStatusFilter>[] = [
    {
       value: "all",
       label: "Todos"
@@ -19,14 +18,32 @@ const filterOptions: SelectOption<UserStatusFilter>[] = [
    }
 ]
 
+export type UserRoleFilter = "all" | "admin" | "user";
+const filterRoleOptions: SelectOption<UserRoleFilter>[] = [
+   {
+      value: "all",
+      label: "Todos"
+   },
+   {
+      value: "admin",
+      label: "Administrador"
+   },
+   {
+      value: "user",
+      label: "Colaborador"
+   }
+]
+
 interface UserFiltersProps {
    search: string;
    onSearchChange: (value: string) => void;
    status: UserStatusFilter;
    onStatusChange: (value: UserStatusFilter) => void;
+   role: UserRoleFilter;
+   onRoleChange: (value: UserRoleFilter) => void;
 }
 
-export default function UserFilters({search, onSearchChange, status, onStatusChange}: Readonly<UserFiltersProps>) {
+export default function UserFilters({ search, onSearchChange, status, onStatusChange, role, onRoleChange }: Readonly<UserFiltersProps>) {
    return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
          <div className="relative w-full sm:max-w-md">
@@ -41,18 +58,34 @@ export default function UserFilters({search, onSearchChange, status, onStatusCha
             />
          </div>
 
-         <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-               Estado:
-            </span>
+         <div className="flex gap-5 flex-col md:flex-row">
+            <div className="flex items-center gap-2">
+               <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Rol:
+               </span>
 
-            <CustomSelect
-               value={status}
-               options={filterOptions}
-               onChange={onStatusChange}
-               ariaLabel="Tema de pantalla"
-               className="w-48"
-            />
+               <CustomSelect
+                  value={role}
+                  options={filterRoleOptions}
+                  onChange={onRoleChange}
+                  ariaLabel="Rol de usuario"
+                  className="w-full md:w-48"
+               />
+            </div>
+
+            <div className="flex items-center gap-2">
+               <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Estado:
+               </span>
+
+               <CustomSelect
+                  value={status}
+                  options={filterStatusOptions}
+                  onChange={onStatusChange}
+                  ariaLabel="Estado de usuario"
+                  className="w-full md:w-48"
+               />
+            </div>
          </div>
       </div>
    );
