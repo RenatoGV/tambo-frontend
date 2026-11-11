@@ -7,8 +7,21 @@ export const getUsers = () => {
 };
 
 export function createUser(request: UserRequest) {
-   return http<unknown>("/users", {
+   return http<unknown>('/users', {
       method: 'POST',
       body: JSON.stringify(request)
    });
 };
+
+export async function updateUser(id: number, request: UserRequest): Promise<User> {
+   return http<User>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(request)
+   });
+};
+
+export async function changeUserStatus(id: number, active: boolean): Promise<User> {
+   return http<User>(`/users/${id}/status?active=${active}`, {
+      method: 'PATCH'
+   });
+}

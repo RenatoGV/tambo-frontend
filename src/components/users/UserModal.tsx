@@ -1,16 +1,18 @@
 import { useEffect, useState, type SubmitEvent } from "react";
-import { Eye, EyeOff, UserPlus, X } from "lucide-react";
+import { Eye, EyeOff, UserPlus, UserRoundPen, X } from "lucide-react";
 import { toast } from "react-toastify";
 
 import type { SelectOption } from "../ui/CustomSelect";
 import CustomSelect from "../ui/CustomSelect";
 import type { UserRequest } from "../../types/requests/userRequest";
-import { createUser } from "../../services/userService";
+import { createUser, updateUser } from "../../services/userService";
+import type { User } from "../../types/user";
 
-interface RegisterUserModalProps {
+interface UserModalProps {
    isOpen: boolean;
    onClose: () => void;
    onSuccess: () => void | Promise<void>;
+   userToEdit: User | null;
 }
 
 interface FormInputProps {
@@ -74,7 +76,9 @@ function FormInput({
    );
 }
 
-export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readonly<RegisterUserModalProps>) {
+export default function UserModal({ isOpen, onClose, onSuccess, userToEdit }: Readonly<UserModalProps>) {
+   const isEditing = userToEdit !== null;
+
    const initialForm: UserRequest = {
       name: "",
       lastname: "",
@@ -91,13 +95,24 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
    const [submitting, setSubmitting] = useState(false);
 
    useEffect(() => {
-      if (!isOpen) {
+      if(!isOpen) return;
+
+      if(userToEdit) {
+         setForm({
+            name: userToEdit.name,
+            lastname: userToEdit.lastname,
+            user: userToEdit.user,
+            password: "",
+            role: userToEdit.role.id
+         });
+      } else {
          setForm(initialForm);
-         setConfirmPassword("");
-         setShowPassword(false);
-         setShowConfirmPassword(false);
       }
-   }, [isOpen]);
+
+      setConfirmPassword("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+   }, [isOpen, userToEdit]);
 
    if (!isOpen) return null;
 
@@ -108,28 +123,42 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (form.password !== confirmPassword) {
-         toast.error("Las contraseñas no coinciden");
-         return;
-      }
+      if (!isEditing && form.password !== null) {
+         if (form.password.length < 6 || form.password.length > 72) {
+            toast.error("La contraseña debe tener entre 6 y 72 caracteres");
+            return;
+         }
 
-      if (form.password.length < 6 || form.password.length > 72) {
-         toast.error("La contraseña debe tener entre 6 y 72 caracteres");
-         return;
+         if (form.password !== confirmPassword) {
+            toast.error("Las contraseñas no coinciden");
+            return;
+         }
       }
 
       try {
          setSubmitting(true);
 
-         await createUser({
-            name: form.name.trim(),
-            lastname: form.lastname.trim(),
-            user: form.user.trim(),
-            password: form.password,
-            role: form.role
-         });
+         if(isEditing && userToEdit) {
+            await updateUser(userToEdit.id, {
+               name: form.name.trim(),
+               lastname: form.lastname.trim(),
+               user: form.user.trim(),
+               password: null,
+               role: form.role
+            });
 
-         toast.success("Usuario registrado correctamente");
+            toast.success('Usuario editado correctamente');
+         } else {
+            await createUser({
+               name: form.name.trim(),
+               lastname: form.lastname.trim(),
+               user: form.user.trim(),
+               password: form.password,
+               role: form.role
+            });
+
+            toast.success("Usuario registrado correctamente");
+         }
 
          await onSuccess();
          onClose();
@@ -173,16 +202,16 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
             <div className="flex items-center justify-between border-b border-gray-200 p-5 dark:border-slate-800">
                <div className="flex items-center gap-3">
                   <div className="rounded-lg bg-slate-100 p-2 text-purple-600 dark:bg-slate-800 dark:text-purple-400">
-                     <UserPlus size={21} />
+                     { isEditing ? <UserRoundPen size={21} /> : <UserPlus size={21} /> }
                   </div>
 
                   <div>
                      <h2 id="register-user-title" className="font-semibold text-gray-900 dark:text-white">
-                        Nuevo usuario
+                        { isEditing ? "Editar usuario" : "Nuevo usuario" }
                      </h2>
 
                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Registrar nuevo colaborador del sistema.
+                        { isEditing ? "Modifica los datos del usuario." : "Registrar nuevo colaborador del sistema." }
                      </p>
                   </div>
                </div>
@@ -247,33 +276,38 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
                   />
                </div>
 
-               <FormInput
-                  id="password"
-                  label="Contraseña"
-                  value={form.password}
-                  onChange={(value) => updateField("password", value)}
-                  placeholder="Mínimo 6 caracteres"
-                  type={showPassword ? "text" : "password"}
-                  maxLength={72}
-                  disabled={submitting}
-                  rightElement={passwordToggle(showPassword, () => setShowPassword((previous) => !previous))}
-               />
+               {
+                  (!isEditing && form.password !== null) &&
+                  <>
+                     <FormInput
+                        id="password"
+                        label="Contraseña"
+                        value={form.password}
+                        onChange={(value) => updateField("password", value)}
+                        placeholder="Mínimo 6 caracteres"
+                        type={showPassword ? "text" : "password"}
+                        maxLength={72}
+                        disabled={submitting}
+                        rightElement={passwordToggle(showPassword, () => setShowPassword((previous) => !previous))}
+                     />
 
-               <FormInput
-                  id="confirmPassword"
-                  label="Confirmar contraseña"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  placeholder="Repite la contraseña"
-                  type={showConfirmPassword ? "text" : "password"}
-                  maxLength={72}
-                  disabled={submitting}
-                  rightElement={passwordToggle(showConfirmPassword, () => setShowConfirmPassword((previous) => !previous))}
-               />
+                     <FormInput
+                        id="confirmPassword"
+                        label="Confirmar contraseña"
+                        value={confirmPassword}
+                        onChange={setConfirmPassword}
+                        placeholder="Repite la contraseña"
+                        type={showConfirmPassword ? "text" : "password"}
+                        maxLength={72}
+                        disabled={submitting}
+                        rightElement={passwordToggle(showConfirmPassword, () => setShowConfirmPassword((previous) => !previous))}
+                     />
 
-               <p className="text-xs text-gray-500 dark:text-gray-400">
-                  La contraseña debe tener entre 6 y 72 caracteres.
-               </p>
+                     <p className="text-xs text-gray-500 dark:text-gray-400">
+                        La contraseña debe tener entre 6 y 72 caracteres.
+                     </p>
+                  </>
+               }
 
                {/* Acciones */}
                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end dark:border-slate-800">
@@ -294,12 +328,12 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
                      {submitting ? (
                         <>
                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{" "}
-                           Registrando...
+                           { isEditing ? "Guardando..." : "Registrando..." }
                         </>
                      ) : (
                         <>
-                           <UserPlus size={17} />
-                           Registrar usuario
+                           { isEditing ? <UserRoundPen size={17} /> : <UserPlus size={17} /> }
+                           { isEditing ? "Guardar cambios" : "Registrar usuario" }
                         </>
                      )}
                   </button>

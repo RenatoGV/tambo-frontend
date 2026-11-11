@@ -3,10 +3,10 @@ import { Plus, RefreshCw, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import UserStats from "../components/users/UserStats";
 import UserFilters, { type UserStatusFilter } from "../components/users/UserFilters";
-import { getUsers } from "../services/userService";
+import { changeUserStatus, getUsers } from "../services/userService";
 import type { User } from "../types/user";
 import UserTable from "../components/users/UserTable";
-import RegisterUserModal from "../components/users/RegisterUserModal";
+import UserModal from "../components/users/UserModal";
 
 export default function UsersPage() {
    const [users, setUsers] = useState<User[]>([]);
@@ -16,7 +16,9 @@ export default function UsersPage() {
    const [search, setSearch] = useState("");
    const [status, setStatus] = useState<UserStatusFilter>("all");
 
-   const [showRegisterModal, setShowRegisterModal] = useState(false);
+   const [showModal, setShowModal] = useState(false);
+   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+   const [changingStatusId, setChangingStatusId] = useState<number | null>(null);
 
    const loadUsers = useCallback(async () => {
       try {
@@ -51,6 +53,43 @@ export default function UsersPage() {
       });
    }, [users, search, status]);
 
+   const handleCreateUser = () => {
+      setSelectedUser(null);
+      setShowModal(true);
+   };
+
+   const handleEditUser = (user: User) => {
+      setSelectedUser(user);
+      setShowModal(true);
+   };
+
+   const handleCloseModal = () => {
+      setSelectedUser(null);
+      setShowModal(false);
+   };
+
+   const handleToggleStatus = async (user: User) => {
+      const nextStatus = !user.active;
+      const action = nextStatus ? 'activar' : 'desactivar';
+
+      if(!window.confirm(`Estás seguro de ${action} al usuario ${user.user}?`)) return;
+
+      try {
+         setChangingStatusId(user.id);
+
+         const updatedUser = await changeUserStatus(user.id, nextStatus);
+
+         setUsers((currentUsers) => currentUsers.map((currentUser) => currentUser.id === updatedUser.id ? updatedUser : currentUser));
+
+         toast.success(`Usuario ${nextStatus ? "activado" : "desactivado"} correctamente`);
+      } catch (error) {
+         const message = error instanceof Error ? error.message : "No se pudo cambiar el estado del usuario";
+         toast.error(message);
+      } finally {
+         setChangingStatusId(null);
+      }
+   }
+
    return (
       <div className="h-full space-y-6 overflow-y-auto p-6">
          {/* Encabezado */}
@@ -67,7 +106,7 @@ export default function UsersPage() {
 
             <button
                type="button"
-               onClick={() => setShowRegisterModal(true)}
+               onClick={handleCreateUser}
                className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700"
             >
                <Plus size={18} />
@@ -145,15 +184,16 @@ export default function UsersPage() {
                      </p>
                   </div>
                ) : (
-                  <UserTable users={filteredUsers} />
+                  <UserTable users={filteredUsers} onEdit={handleEditUser} onToggleStatus={handleToggleStatus} changingStatusId={changingStatusId} />
                )}
             </div>
          </section>
 
-         <RegisterUserModal
-            isOpen={showRegisterModal}
-            onClose={() => setShowRegisterModal(false)}
+         <UserModal
+            isOpen={showModal}
+            onClose={handleCloseModal}
             onSuccess={loadUsers}
+            userToEdit={selectedUser}
          />
       </div>
    );
