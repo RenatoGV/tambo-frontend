@@ -4,13 +4,13 @@ import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export interface SelectOption<T extends string = string> {
+export interface SelectOption<T extends string | number> {
    value: T;
    label: string;
    icon?: LucideIcon;
 }
 
-interface CustomSelectProps<T extends string> {
+interface CustomSelectProps<T extends string | number> {
    value: T;
    options: readonly SelectOption<T>[];
    onChange: (value: T) => void;
@@ -26,7 +26,7 @@ interface DropdownPosition {
    maxHeight: number;
 }
 
-export default function CustomSelect<T extends string>({value, options, onChange, ariaLabel, disabled = false, className = ""}: Readonly<CustomSelectProps<T>>) {
+export default function CustomSelect<T extends string | number>({value, options, onChange, ariaLabel, disabled = false, className = ""}: Readonly<CustomSelectProps<T>>) {
    const [isOpen, setIsOpen] = useState(false);
    const [position, setPosition] = useState<DropdownPosition | null>(null);
 
