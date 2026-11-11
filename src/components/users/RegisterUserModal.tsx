@@ -2,8 +2,10 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { Eye, EyeOff, UserPlus, X } from "lucide-react";
 import { toast } from "react-toastify";
 
-import type { RegisterRequest } from "../../types/requests/userRequest";
-import { createUser } from "../../services/authService";
+import type { SelectOption } from "../ui/CustomSelect";
+import CustomSelect from "../ui/CustomSelect";
+import type { UserRequest } from "../../types/requests/userRequest";
+import { createUser } from "../../services/userService";
 
 interface RegisterUserModalProps {
    isOpen: boolean;
@@ -23,6 +25,17 @@ interface FormInputProps {
    disabled?: boolean;
    rightElement?: React.ReactNode;
 }
+
+const roleOptions: SelectOption<number>[] = [
+   {
+      value: 1,
+      label: "Administrador"
+   },
+   {
+      value: 2,
+      label: "Colaborador"
+   }
+]
 
 function FormInput({
    id,
@@ -62,7 +75,15 @@ function FormInput({
 }
 
 export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readonly<RegisterUserModalProps>) {
-   const [form, setForm] = useState<RegisterRequest>({ name: "", lastname: "", user: "", password: "" });
+   const initialForm: UserRequest = {
+      name: "",
+      lastname: "",
+      user: "",
+      password: "",
+      role: 2,
+   };
+
+   const [form, setForm] = useState<UserRequest>(initialForm);
 
    const [confirmPassword, setConfirmPassword] = useState("");
    const [showPassword, setShowPassword] = useState(false);
@@ -71,7 +92,7 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
 
    useEffect(() => {
       if (!isOpen) {
-         setForm({ name: "", lastname: "", user: "", password: "" });
+         setForm(initialForm);
          setConfirmPassword("");
          setShowPassword(false);
          setShowConfirmPassword(false);
@@ -80,7 +101,7 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
 
    if (!isOpen) return null;
 
-   const updateField = (field: keyof RegisterRequest, value: string) => {
+   const updateField = (field: keyof UserRequest, value: string | number) => {
       setForm((previous) => ({ ...previous, [field]: value }));
    };
 
@@ -105,6 +126,7 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
             lastname: form.lastname.trim(),
             user: form.user.trim(),
             password: form.password,
+            role: form.role
          });
 
          toast.success("Usuario registrado correctamente");
@@ -209,6 +231,21 @@ export default function RegisterUserModal({ isOpen, onClose, onSuccess }: Readon
                   maxLength={20}
                   disabled={submitting}
                />
+
+               <div className="space-y-1.5">
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                     Rol
+                  </label>
+
+                  <CustomSelect
+                     value={form.role}
+                     options={roleOptions}
+                     onChange={(value) => updateField("role", value)}
+                     disabled={submitting}
+                     ariaLabel="Tema de pantalla"
+                     className="w-full"
+                  />
+               </div>
 
                <FormInput
                   id="password"
